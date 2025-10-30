@@ -11,7 +11,7 @@ from typing import Optional
 
 app = FastAPI(title="CBU Gold Prices API")
 
-CBU_URL = "https://cbu.uz/uz/banknotes-coins/gold-bars/prices/"
+CBU_URL = os.getenv("CBU_URL", "https://cbu.uz/uz/banknotes-coins/gold-bars/prices/")
 REQUEST_TIMEOUT = 8  # seconds
 CACHE_FILE = "cache.json"
 CACHE_TTL = timedelta(hours=24)  # 24 hours cache
@@ -134,6 +134,14 @@ def get_gold_prices(force: bool = Query(False, description="Force re-scrape and 
         expires_at = save_cache(result)
 
     return JSONResponse(content={**result, "cache": {"status": "stored", "expires_at": expires_at.isoformat()}})
+
+@app.get("/")
+def root():
+    return {
+        "message": "Welcome to the CBU Gold Prices API 🇺🇿",
+        "routes": ["/gold", "/cache/status", "/health"],
+        "source": CBU_URL
+    }
 
 @app.get("/health")
 def health():
